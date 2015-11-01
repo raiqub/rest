@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	rqhttp "github.com/skarllot/raiqub/http"
 )
 
 func TestPreflightHeaders(t *testing.T) {
@@ -67,11 +68,11 @@ func TestPreflightHeaders(t *testing.T) {
 
 	client := http.Client{}
 	req, err := http.NewRequest(conf.method, ts.URL, nil)
-	HttpHeader_Origin().
+	rqhttp.HttpHeader_Origin().
 		SetValue(conf.origin).SetWriter(req.Header)
-	HttpHeader_AccessControlRequestHeaders().
+	rqhttp.HttpHeader_AccessControlRequestHeaders().
 		SetValue(conf.headers).SetWriter(req.Header)
-	HttpHeader_AccessControlRequestMethod().
+	rqhttp.HttpHeader_AccessControlRequestMethod().
 		SetValue(conf.reqmethod).SetWriter(req.Header)
 
 	res, err := client.Do(req)
@@ -79,26 +80,26 @@ func TestPreflightHeaders(t *testing.T) {
 		t.Fatalf("Error trying to call HTTP %s: %v", conf.method, err)
 	}
 
-	var header *HttpHeader
+	var header *rqhttp.HttpHeader
 
-	header = HttpHeader_AccessControlAllowOrigin()
+	header = rqhttp.HttpHeader_AccessControlAllowOrigin()
 	if header.GetReader(res.Header).Value == "" {
 		t.Errorf("The header %s was not found", header.Name)
 	}
-	header = HttpHeader_Origin()
+	header = rqhttp.HttpHeader_Origin()
 	if header.GetReader(res.Header).Value != "" {
 		t.Errorf("The header %s should not be found", header.Name)
 	}
-	header = HttpHeader_AccessControlAllowHeaders()
+	header = rqhttp.HttpHeader_AccessControlAllowHeaders()
 	if header.GetReader(res.Header).Value == "" {
 		t.Error("The header %s was not found", header.Name)
 	}
-	header = HttpHeader_AccessControlAllowMethods()
+	header = rqhttp.HttpHeader_AccessControlAllowMethods()
 	if !strings.Contains(header.GetReader(res.Header).Value, conf.reqmethod) {
 		t.Errorf("The header %s doesn't allow '%s' HTTP method",
 			header.Name, conf.reqmethod)
 	}
-	header = HttpHeader_AccessControlAllowCredentials()
+	header = rqhttp.HttpHeader_AccessControlAllowCredentials()
 	if b, err := strconv.ParseBool(
 		header.GetReader(res.Header).Value); err != nil || !b {
 		t.Errorf("The header %s should be '%s'",
