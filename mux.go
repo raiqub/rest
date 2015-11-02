@@ -55,8 +55,8 @@ func (rest *Rest) AddResource(r Routable) {
 	rest.routes = append(rest.routes, r.Routes()...)
 }
 
-func (rest *Rest) AddRouteDetached(r Route) {
-	rest.detached = append(rest.detached, r)
+func (rest *Rest) AddResourceDetached(r Routable) {
+	rest.detached = append(rest.detached, r.Routes()...)
 }
 
 func (rest *Rest) EnableCORS() {
@@ -99,4 +99,11 @@ func (rest *Rest) ListenAndServe(addr string) error {
 	}
 
 	return http.ListenAndServe(addr, rest.router)
+}
+
+func (rest *Rest) ResourcesRoutes() Routes {
+	result := make(Routes, len(rest.routes))
+	copy(result, rest.routes)
+	
+	return result
 }
