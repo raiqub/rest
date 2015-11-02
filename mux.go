@@ -20,7 +20,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	rqhttp "github.com/skarllot/raiqub/http"
+	rqhttp "github.com/raiqub/http"
 )
 
 type Rest struct {

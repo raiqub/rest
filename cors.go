@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
+	rqhttp "github.com/raiqub/http"
 	"github.com/skarllot/raiqub"
-	rqhttp "github.com/skarllot/raiqub/http"
 )
 
 const (

@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	rqhttp "github.com/skarllot/raiqub/http"
+	rqhttp "github.com/raiqub/http"
 )
 
 func TestPreflightHeaders(t *testing.T) {
