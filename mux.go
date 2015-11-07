@@ -18,52 +18,58 @@ package rest
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/mux"
 	rqhttp "github.com/raiqub/http"
 )
 
+// A Rest register resources and middlewares for a HTTP handler.
+//
+// It implements the http.Handler interface, so it can be registered to serve
+// requests.
 type Rest struct {
 	router        *mux.Router
 	routes        Routes
-	detached      Routes
 	middlePublic  rqhttp.Chain
 	middlePrivate rqhttp.Chain
 	cors          *CORSHandler
+	prepare       sync.Once
 }
 
+// NewRest returns a new instance of Rest router.
 func NewRest() *Rest {
 	return &Rest{
 		nil,
 		make(Routes, 0),
-		make(Routes, 0),
 		make(rqhttp.Chain, 0),
 		make(rqhttp.Chain, 0),
 		nil,
+		sync.Once{},
 	}
 }
 
+// AddMiddlewarePrivate adds a layer to handle private resource requests.
 func (rest *Rest) AddMiddlewarePrivate(m rqhttp.HttpMiddlewareFunc) {
 	rest.middlePrivate = append(rest.middlePrivate, m)
 }
 
+// AddMiddlewarePublic adds a layer to handle public resource requests.
 func (rest *Rest) AddMiddlewarePublic(m rqhttp.HttpMiddlewareFunc) {
 	rest.middlePublic = append(rest.middlePublic, m)
 }
 
+// AddResource adds a new REST-resource to handle requests.
 func (rest *Rest) AddResource(r Routable) {
 	rest.routes = append(rest.routes, r.Routes()...)
 }
 
-func (rest *Rest) AddResourceDetached(r Routable) {
-	rest.detached = append(rest.detached, r.Routes()...)
-}
-
+// EnableCORS allows to current API support CORS specification.
 func (rest *Rest) EnableCORS() {
 	rest.cors = NewCORSHandler()
 }
 
-func (rest *Rest) ListenAndServe(addr string) error {
+func (rest *Rest) initRouter() {
 	if rest.cors != nil {
 		rest.routes = append(rest.routes,
 			rest.cors.CreatePreflight(rest.routes)...)
@@ -87,23 +93,23 @@ func (rest *Rest) ListenAndServe(addr string) error {
 			Name(r.Name).
 			Handler(middlewares.Get(r.ActionFunc))
 	}
-
-	if len(rest.detached) > 0 {
-		for _, r := range rest.detached {
-			rest.router.
-				Methods(r.Method).
-				Path(r.Path).
-				Name(r.Name).
-				Handler(r.ActionFunc)
-		}
-	}
-
-	return http.ListenAndServe(addr, rest.router)
 }
 
+// Routes returns the routes from registered resources.
 func (rest *Rest) ResourcesRoutes() Routes {
 	result := make(Routes, len(rest.routes))
 	copy(result, rest.routes)
-	
+
 	return result
+}
+
+// ServeHTTP dispatches the handler registered in the matched route.
+func (rest *Rest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	rest.prepare.Do(rest.initRouter)
+	rest.router.ServeHTTP(w, req)
+}
+
+// Vars returns the route variables for the current request, if any.
+func Vars(r *http.Request) map[string]string {
+	return mux.Vars(r)
 }

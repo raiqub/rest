@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raiqub/dot"
 	rqhttp "github.com/raiqub/http"
-	"github.com/skarllot/raiqub"
 )
 
 const (
@@ -35,7 +35,7 @@ const (
 
 // A CORSHandler allows to create a CORS-able API.
 type CORSHandler struct {
-	PredicateOrigin raiqub.PredicateStringFunc
+	PredicateOrigin dot.PredicateStringFunc
 	Headers         []string
 	ExposedHeaders  []string
 }
@@ -43,7 +43,7 @@ type CORSHandler struct {
 // NewCORSHandler creates a new CORSHandler with default values.
 func NewCORSHandler() *CORSHandler {
 	return &CORSHandler{
-		PredicateOrigin: raiqub.TrueForAll,
+		PredicateOrigin: dot.TrueForAll,
 		Headers: []string{
 			"Origin", "X-Requested-With", "Content-Type",
 			"Accept", "Authorization",
@@ -117,7 +117,7 @@ func (s *CORSPreflight) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			header = []string{}
 		}
 
-		if !raiqub.StringSlice(s.Methods).Exists(method) {
+		if !dot.StringSlice(s.Methods).Exists(method, false) {
 			msg = "Method not allowed"
 			return
 		}
@@ -127,7 +127,7 @@ func (s *CORSPreflight) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				SetWriter(w.Header())
 		} else {
 			if len(header) > 0 &&
-				!raiqub.StringSlice(s.Headers).ExistsAllIgnoreCase(header) {
+				!dot.StringSlice(s.Headers).ExistsAll(header, true) {
 				msg = "Header not allowed"
 				return
 			}
