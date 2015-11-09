@@ -75,7 +75,7 @@ func (rest *Rest) initRouter() {
 			rest.cors.CreatePreflight(rest.routes)...)
 	}
 
-	rest.router = mux.NewRouter()
+	rest.router = mux.NewRouter().StrictSlash(true)
 	for _, r := range rest.routes {
 		middlewares := rest.middlePublic
 		if r.MustAuth == true {
@@ -110,6 +110,6 @@ func (rest *Rest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 // Vars returns the route variables for the current request, if any.
-func Vars(r *http.Request) map[string]string {
+func Vars(r *http.Request) RouteVars {
 	return mux.Vars(r)
 }
