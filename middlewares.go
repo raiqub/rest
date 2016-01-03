@@ -29,11 +29,10 @@ func RecoverHandlerJson(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				jerr := rqhttp.NewJsonErrorFromError(
-					http.StatusInternalServerError,
-					fmt.Errorf("panic: %+v", err),
-				)
-				rqhttp.JsonWrite(w, jerr.Status, jerr)
+				jerr := rqhttp.NewJSONError().
+					FromError(fmt.Errorf("panic: %+v", err)).
+					Build()
+				rqhttp.JSONWrite(w, jerr.Status, jerr)
 			}
 		}()
 

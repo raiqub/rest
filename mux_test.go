@@ -131,20 +131,22 @@ func (self *resource) GetItem(
 
 	ret, ok := self.data[id]
 	if !ok {
-		jerr := rqhttp.NewJsonErrorFromError(http.StatusNotFound,
-			fmt.Errorf("Id '%s' not Found", id))
-		rqhttp.JsonWrite(w, jerr.Status, jerr)
+		jerr := rqhttp.NewJSONError().
+			FromError(fmt.Errorf("Id '%s' was not Found", id)).
+			Status(http.StatusNotFound).
+			Build()
+		rqhttp.JSONWrite(w, jerr.Status, jerr)
 		return
 	}
 
-	rqhttp.JsonWrite(w, http.StatusOK, ret)
+	rqhttp.JSONWrite(w, http.StatusOK, ret)
 }
 
 func (self *resource) GetList(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	rqhttp.JsonWrite(w, http.StatusOK, self.data)
+	rqhttp.JSONWrite(w, http.StatusOK, self.data)
 }
 
 func (self *resource) Routes() Routes {

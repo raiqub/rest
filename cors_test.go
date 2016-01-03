@@ -19,12 +19,12 @@
 package rest
 
 import (
+	rqhttp "github.com/raiqub/http"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
-	rqhttp "github.com/raiqub/http"
 )
 
 func TestPreflightHeaders(t *testing.T) {
@@ -68,38 +68,44 @@ func TestPreflightHeaders(t *testing.T) {
 
 	client := http.Client{}
 	req, err := http.NewRequest(conf.method, ts.URL, nil)
-	rqhttp.HttpHeader_Origin().
-		SetValue(conf.origin).SetWriter(req.Header)
-	rqhttp.HttpHeader_AccessControlRequestHeaders().
-		SetValue(conf.headers).SetWriter(req.Header)
-	rqhttp.HttpHeader_AccessControlRequestMethod().
-		SetValue(conf.reqmethod).SetWriter(req.Header)
+	rqhttp.NewHeader().
+		Origin().
+		SetValue(conf.origin).
+		SetWriter(req.Header)
+	rqhttp.NewHeader().
+		AccessControlRequestHeaders().
+		SetValue(conf.headers).
+		SetWriter(req.Header)
+	rqhttp.NewHeader().
+		AccessControlRequestMethod().
+		SetValue(conf.reqmethod).
+		SetWriter(req.Header)
 
 	res, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("Error trying to call HTTP %s: %v", conf.method, err)
 	}
 
-	var header *rqhttp.HttpHeader
+	var header *rqhttp.Header
 
-	header = rqhttp.HttpHeader_AccessControlAllowOrigin()
+	header = rqhttp.NewHeader().AccessControlAllowOrigin()
 	if header.GetReader(res.Header).Value == "" {
 		t.Errorf("The header %s was not found", header.Name)
 	}
-	header = rqhttp.HttpHeader_Origin()
+	header = rqhttp.NewHeader().Origin()
 	if header.GetReader(res.Header).Value != "" {
 		t.Errorf("The header %s should not be found", header.Name)
 	}
-	header = rqhttp.HttpHeader_AccessControlAllowHeaders()
+	header = rqhttp.NewHeader().AccessControlAllowHeaders()
 	if header.GetReader(res.Header).Value == "" {
 		t.Error("The header %s was not found", header.Name)
 	}
-	header = rqhttp.HttpHeader_AccessControlAllowMethods()
+	header = rqhttp.NewHeader().AccessControlAllowMethods()
 	if !strings.Contains(header.GetReader(res.Header).Value, conf.reqmethod) {
 		t.Errorf("The header %s doesn't allow '%s' HTTP method",
 			header.Name, conf.reqmethod)
 	}
-	header = rqhttp.HttpHeader_AccessControlAllowCredentials()
+	header = rqhttp.NewHeader().AccessControlAllowCredentials()
 	if b, err := strconv.ParseBool(
 		header.GetReader(res.Header).Value); err != nil || !b {
 		t.Errorf("The header %s should be '%s'",

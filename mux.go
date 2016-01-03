@@ -50,12 +50,12 @@ func NewRest() *Rest {
 }
 
 // AddMiddlewarePrivate adds a layer to handle private resource requests.
-func (rest *Rest) AddMiddlewarePrivate(m rqhttp.HttpMiddlewareFunc) {
+func (rest *Rest) AddMiddlewarePrivate(m rqhttp.MiddlewareFunc) {
 	rest.middlePrivate = append(rest.middlePrivate, m)
 }
 
 // AddMiddlewarePublic adds a layer to handle public resource requests.
-func (rest *Rest) AddMiddlewarePublic(m rqhttp.HttpMiddlewareFunc) {
+func (rest *Rest) AddMiddlewarePublic(m rqhttp.MiddlewareFunc) {
 	rest.middlePublic = append(rest.middlePublic, m)
 }
 
