@@ -17,8 +17,9 @@
 package rest
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"strconv"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 // A RouteVars represents the route variables for specified request.

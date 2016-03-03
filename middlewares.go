@@ -18,26 +18,22 @@ package rest
 
 import (
 	"fmt"
-	"net/http"
 
-	rqhttp "github.com/raiqub/http"
+	"github.com/gin-gonic/gin"
+	"gopkg.in/raiqub/web.v0"
 )
 
 // RecoverHandlerJson is a HTTP request middleware that captures panic errors
 // and returns it as HTTP JSON response.
-func RecoverHandlerJson(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				jerr := rqhttp.NewJSONError().
-					FromError(fmt.Errorf("panic: %+v", err)).
-					Build()
-				rqhttp.JSONWrite(w, jerr.Status, jerr)
-			}
-		}()
+func RecoverHandlerJson(c *gin.Context) {
+	defer func() {
+		if err := recover(); err != nil {
+			jerr := web.NewJSONError().
+				FromError(fmt.Errorf("panic: %+v", err)).
+				Build()
+			c.JSON(jerr.Status, jerr)
+		}
+	}()
 
-		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
+	c.Next()
 }
