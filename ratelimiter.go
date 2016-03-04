@@ -43,7 +43,7 @@ func (lmt *RateLimiter) AddCall(id string) int {
 		return -1
 	}
 
-	if count >= lmt.threshold {
+	if count > lmt.threshold {
 		level++
 
 		if lmt.stack != nil {
