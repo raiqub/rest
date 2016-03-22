@@ -27,7 +27,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	rqhttp "github.com/raiqub/http"
+	"gopkg.in/raiqub/web.v0"
 )
 
 const (
@@ -131,20 +131,22 @@ func (self *resource) GetItem(
 
 	ret, ok := self.data[id]
 	if !ok {
-		jerr := rqhttp.NewJsonErrorFromError(http.StatusNotFound,
-			fmt.Errorf("Id '%s' not Found", id))
-		rqhttp.JsonWrite(w, jerr.Status, jerr)
+		jerr := web.NewJSONError().
+			FromError(fmt.Errorf("Id '%s' not Found", id)).
+			Status(http.StatusNotFound).
+			Build()
+		web.JSONWrite(w, jerr.Status, jerr)
 		return
 	}
 
-	rqhttp.JsonWrite(w, http.StatusOK, ret)
+	web.JSONWrite(w, http.StatusOK, ret)
 }
 
 func (self *resource) GetList(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	rqhttp.JsonWrite(w, http.StatusOK, self.data)
+	web.JSONWrite(w, http.StatusOK, self.data)
 }
 
 func (self *resource) Routes() Routes {

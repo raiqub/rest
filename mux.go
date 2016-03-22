@@ -21,7 +21,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/mux"
-	rqhttp "github.com/raiqub/http"
+	"gopkg.in/raiqub/web.v0"
 )
 
 // A Rest register resources and middlewares for a HTTP handler.
@@ -31,8 +31,8 @@ import (
 type Rest struct {
 	router        *mux.Router
 	routes        Routes
-	middlePublic  rqhttp.Chain
-	middlePrivate rqhttp.Chain
+	middlePublic  web.Chain
+	middlePrivate web.Chain
 	cors          *CORSHandler
 	prepare       sync.Once
 }
@@ -42,20 +42,20 @@ func NewRest() *Rest {
 	return &Rest{
 		nil,
 		make(Routes, 0),
-		make(rqhttp.Chain, 0),
-		make(rqhttp.Chain, 0),
+		make(web.Chain, 0),
+		make(web.Chain, 0),
 		nil,
 		sync.Once{},
 	}
 }
 
 // AddMiddlewarePrivate adds a layer to handle private resource requests.
-func (rest *Rest) AddMiddlewarePrivate(m rqhttp.HttpMiddlewareFunc) {
+func (rest *Rest) AddMiddlewarePrivate(m web.MiddlewareFunc) {
 	rest.middlePrivate = append(rest.middlePrivate, m)
 }
 
 // AddMiddlewarePublic adds a layer to handle public resource requests.
-func (rest *Rest) AddMiddlewarePublic(m rqhttp.HttpMiddlewareFunc) {
+func (rest *Rest) AddMiddlewarePublic(m web.MiddlewareFunc) {
 	rest.middlePublic = append(rest.middlePublic, m)
 }
 

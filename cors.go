@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raiqub/dot"
-	rqhttp "github.com/raiqub/http"
+	"gopkg.in/raiqub/dot.v1"
+	"gopkg.in/raiqub/web.v0"
 )
 
 const (
@@ -94,7 +94,7 @@ type CORSPreflight struct {
 
 // ServeHTTP handle a pre-flight request.
 func (s *CORSPreflight) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	origin := rqhttp.HttpHeader_Origin().GetReader(r.Header)
+	origin := web.NewHeader().Origin().Read(r.Header)
 	status := http.StatusBadRequest
 	msg := ""
 	defer func() {
@@ -108,11 +108,17 @@ func (s *CORSPreflight) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		method := rqhttp.HttpHeader_AccessControlRequestMethod().
-			GetReader(r.Header).Value
+		method := web.NewHeader().
+			AccessControlRequestMethod().
+			Read(r.Header).
+			Value
 		header := strings.Split(
-			rqhttp.HttpHeader_AccessControlRequestHeaders().
-				GetReader(r.Header).Value, ", ")
+			web.NewHeader().
+				AccessControlRequestHeaders().
+				Read(r.Header).
+				Value,
+			", ",
+		)
 		if len(header) == 1 && header[0] == "" {
 			header = []string{}
 		}
@@ -123,32 +129,38 @@ func (s *CORSPreflight) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(s.Headers) == 0 {
-			rqhttp.HttpHeader_AccessControlAllowHeaders().
-				SetWriter(w.Header())
+			web.NewHeader().
+				AccessControlAllowHeaders().
+				Write(w.Header())
 		} else {
 			if len(header) > 0 &&
 				!dot.StringSlice(s.Headers).ExistsAll(header, true) {
 				msg = "Header not allowed"
 				return
 			}
-			rqhttp.HttpHeader_AccessControlAllowHeaders().
+			web.NewHeader().
+				AccessControlAllowHeaders().
 				SetValue(strings.Join(s.Headers, ", ")).
-				SetWriter(w.Header())
+				Write(w.Header())
 		}
 
-		rqhttp.HttpHeader_AccessControlAllowMethods().
+		web.NewHeader().
+			AccessControlAllowMethods().
 			SetValue(strings.Join(s.Methods, ", ")).
-			SetWriter(w.Header())
-		rqhttp.HttpHeader_AccessControlAllowOrigin().
+			Write(w.Header())
+		web.NewHeader().
+			AccessControlAllowOrigin().
 			SetValue(origin.Value).
-			SetWriter(w.Header())
-		rqhttp.HttpHeader_AccessControlAllowCredentials().
+			Write(w.Header())
+		web.NewHeader().
+			AccessControlAllowCredentials().
 			SetValue(strconv.FormatBool(s.UseCredentials)).
-			SetWriter(w.Header())
+			Write(w.Header())
 		// Optional
-		rqhttp.HttpHeader_AccessControlMaxAge().
+		web.NewHeader().
+			AccessControlMaxAge().
 			SetValue(strconv.Itoa(int(DEFAULT_CORS_MAX_AGE))).
-			SetWriter(w.Header())
+			Write(w.Header())
 		status = http.StatusOK
 	} else {
 		status = http.StatusNotFound
@@ -165,25 +177,29 @@ type CORSMiddleware struct {
 // Handle is a HTTP handler for CORS-able API.
 func (s *CORSMiddleware) Handle(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		origin := rqhttp.HttpHeader_Origin().GetReader(r.Header)
+		origin := web.NewHeader().Origin().Read(r.Header)
 		if r.Method != DEFAULT_CORS_PREFLIGHT_METHOD && origin.Value != "" {
 			if !s.PredicateOrigin(origin.Value) {
 				return
 			}
 
-			rqhttp.HttpHeader_AccessControlAllowOrigin().
+			web.NewHeader().
+				AccessControlAllowOrigin().
 				SetValue(origin.Value).
-				SetWriter(w.Header())
-			rqhttp.HttpHeader_AccessControlAllowCredentials().
+				Write(w.Header())
+			web.NewHeader().
+				AccessControlAllowCredentials().
 				SetValue(strconv.FormatBool(s.UseCredentials)).
-				SetWriter(w.Header())
+				Write(w.Header())
 			if len(s.Headers) > 0 {
-				rqhttp.HttpHeader_AccessControlAllowHeaders().
+				web.NewHeader().
+					AccessControlAllowHeaders().
 					SetValue(strings.Join(s.Headers, ", ")).
-					SetWriter(w.Header())
+					Write(w.Header())
 			} else {
-				rqhttp.HttpHeader_AccessControlAllowHeaders().
-					SetWriter(w.Header())
+				web.NewHeader().
+					AccessControlAllowHeaders().
+					Write(w.Header())
 			}
 		}
 		next.ServeHTTP(w, r)
